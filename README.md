@@ -1,2 +1,109 @@
 # python
-python code for  Developing  a command-line to-do list application that allows users to manage tasks.
+# python code for  Developing  a command-line to-do list application that allows users to manage tasks.
+import json
+import os
+from datetime import datetime
+
+# Define the filename for data persistence
+DATA_FILE = 'tasks.json'
+
+# Define the task priorities
+PRIORITIES = ['low', 'medium', 'high']
+
+# Load tasks from the file if it exists
+def load_tasks():
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, 'r') as file:
+            return json.load(file)
+    return []
+
+# Save tasks to the file
+def save_tasks(tasks):
+    with open(DATA_FILE, 'w') as file:
+        json.dump(tasks, file, indent=4)
+
+# Display the task list
+def display_tasks(tasks):
+    if not tasks:
+        print("No tasks available.")
+        return
+
+    for idx, task in enumerate(tasks):
+        status = 'Done' if task['completed'] else 'Not Done'
+        print(f"{idx + 1}. [{status}] {task['title']} (Priority: {task['priority']}, Due: {task['due_date']})")
+
+# Add a new task
+def add_task(tasks):
+    title = input("Enter task title: ")
+    priority = input(f"Enter task priority ({', '.join(PRIORITIES)}): ").lower()
+    while priority not in PRIORITIES:
+        print("Invalid priority. Please enter again.")
+        priority = input(f"Enter task priority ({', '.join(PRIORITIES)}): ").lower()
+    
+    due_date = input("Enter task due date (YYYY-MM-DD): ")
+    try:
+        due_date = datetime.strptime(due_date, '%Y-%m-%d').date().isoformat()
+    except ValueError:
+        print("Invalid date format. Setting due date to None.")
+        due_date = None
+
+    task = {
+        'title': title,
+        'priority': priority,
+        'due_date': due_date,
+        'completed': False
+    }
+    tasks.append(task)
+    save_tasks(tasks)
+    print("Task added successfully.")
+
+# Remove a task
+def remove_task(tasks):
+    display_tasks(tasks)
+    task_idx = int(input("Enter the task number to remove: ")) - 1
+    if 0 <= task_idx < len(tasks):
+        tasks.pop(task_idx)
+        save_tasks(tasks)
+        print("Task removed successfully.")
+    else:
+        print("Invalid task number.")
+
+# Mark a task as completed
+def complete_task(tasks):
+    display_tasks(tasks)
+    task_idx = int(input("Enter the task number to mark as completed: ")) - 1
+    if 0 <= task_idx < len(tasks):
+        tasks[task_idx]['completed'] = True
+        save_tasks(tasks)
+        print("Task marked as completed.")
+    else:
+        print("Invalid task number.")
+
+def main():
+    tasks = load_tasks()
+    
+    while True:
+        print("\nTo-Do List Application")
+        print("1. View tasks")
+        print("2. Add task")
+        print("3. Remove task")
+        print("4. Mark task as completed")
+        print("5. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            display_tasks(tasks)
+        elif choice == '2':
+            add_task(tasks)
+        elif choice == '3':
+            remove_task(tasks)
+        elif choice == '4':
+            complete_task(tasks)
+        elif choice == '5':
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == '__main__':
+    main()
